@@ -84,7 +84,7 @@ public class Cproducto {
                  descargarReporte();
             }
                                               
-     public void descargarReporte() {
+    public void descargarReporte() {
         BufferedWriter bw = null;
         FileWriter fw = null;
         Connection conexion = null;
@@ -102,23 +102,43 @@ public class Cproducto {
 
             if (conexion != null) {
                 // Consulta SQL para obtener los datos de la tabla productos
-                String sql = "SELECT * FROM producto";
+                String sql = "SELECT p.fecha, p.vendedor, p.tipo_compra, p.articulo, p.precio_total, c.name, c.cedula FROM producto p INNER JOIN cliente c ON p.cedula = c.cedula ORDER BY c.cedula";
                 PreparedStatement statement = conexion.prepareStatement(sql);
                 ResultSet resultSet = statement.executeQuery();
 
                 // Escribir los datos en el archivo de texto
                 fw = new FileWriter(file);
                 bw = new BufferedWriter(fw);
+
+                String currentCliente = "";
+                float totalGastado = 0;
+
+                // Recorrer el conjunto de resultados
                 while (resultSet.next()) {
-                    String linea = resultSet.getInt("id_producto") + "\t"
-                            + resultSet.getString("fecha") + "\t"
-                            + resultSet.getString("cedula") + "\t"
-                            + resultSet.getString("vendedor") + "\t"
-                            + resultSet.getString("tipo_compra") + "\t"
-                            + resultSet.getString("articulo") + "\t"
-                            + resultSet.getString("precio_total") + "\n";
-                    bw.write(linea);
+                    String cliente = resultSet.getString("cedula") + " - " + resultSet.getString("name");
+                    if (!cliente.equals(currentCliente)) {
+                        // Si es un cliente nuevo, escribir su información
+                        if (!currentCliente.isEmpty()) {
+                            // Escribir el total gastado por el cliente anterior
+                            bw.write("Total gastado por el cliente: " + totalGastado + "\n\n");
+                            totalGastado = 0; // Reiniciar el total gastado para el nuevo cliente
+                        }
+                        bw.write("Cedula y nombre: " + cliente + "\n");
+                        currentCliente = cliente;
+                        bw.write("Tabla:\n");
+                        bw.write("Fecha / Vendedor / Tipo Compra / Artículo / Precio\n");
+                    }
+                    // Agregar detalles del producto
+                    bw.write(resultSet.getString("fecha") + " / ");
+                    bw.write(resultSet.getString("vendedor") + " / ");
+                    bw.write(resultSet.getString("tipo_compra") + " / ");
+                    bw.write(resultSet.getString("articulo") + " / ");
+                    bw.write(resultSet.getString("precio_total") + "\n");
+                    // Actualizar el total gastado por el cliente
+                    totalGastado += Float.parseFloat(resultSet.getString("precio_total"));
                 }
+                // Escribir el total gastado por el último cliente
+                bw.write("Total gastado por el cliente: " + totalGastado + "\n");
 
                 // Mostrar mensaje de éxito
                 JOptionPane.showMessageDialog(null, "Reporte generado y descargado con éxito.");
