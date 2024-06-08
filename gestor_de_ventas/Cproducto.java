@@ -250,7 +250,6 @@ public void insertarproducto(JTextField cedulaParam, JComboBox<String> vendedorP
         psInsertarProducto.setString(5, precio);
 
         psInsertarProducto.executeUpdate();
-        JOptionPane.showMessageDialog(null, "Se insertó correctamente el producto.");
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al insertar el producto: " + e.getMessage());

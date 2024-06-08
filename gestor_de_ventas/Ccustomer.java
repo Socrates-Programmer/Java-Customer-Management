@@ -96,7 +96,19 @@ public class Ccustomer {
             return;
         }*/
        
+       
+
         setNombre(nombreParam.getText());
+        
+               
+        // Obtén el texto del campo nombreParam
+        String nombreText = nombreParam.getText();
+
+        // Valida que solo contenga letras
+        if (!nombreText.matches("[a-zA-Z\\s]+")) {
+            JOptionPane.showMessageDialog(null, "El nombre debe contener solo letras.");
+            return;
+        }
         setDireccion(direccionParam.getText());
         setGenero((String) GeneroParam.getSelectedItem());
         setEstado((String) estadoParam.getSelectedItem());
@@ -113,7 +125,7 @@ public class Ccustomer {
     rs.next();
     if (rs.getInt(1) > 0) {
         JOptionPane.showMessageDialog(null, "La cédula ya existe.");
-        return;  // Salir del método si la cédula ya existe
+        return;  
     }
 
     // Insertar el nuevo cliente en la base de datos
@@ -128,7 +140,6 @@ public class Ccustomer {
 
     psInsertar.executeUpdate();
 
-    JOptionPane.showMessageDialog(null, "Se insertó correctamente el cliente");
 
 } catch (Exception e) {
     JOptionPane.showMessageDialog(null, "No se insertó correctamente el cliente, error: " + e.toString());
