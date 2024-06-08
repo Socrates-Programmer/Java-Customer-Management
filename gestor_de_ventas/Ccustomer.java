@@ -4,10 +4,6 @@
  */
 package com.mycompany.gestor_de_ventas;
 
-import java.sql.CallableStatement;
-import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -26,17 +22,17 @@ import javax.swing.table.TableRowSorter;
  */
 public class Ccustomer {
     
-    int cedula;
+    long cedula;
     String nombre;
     String direccion;
     String Genero;
     String estado;
     
-    public int getCedula() {
+    public long getCedula() {
         return cedula;
     }
 
-    public void setCedula(int cedula) {
+    public void setCedula(Long cedula) {
         this.cedula = cedula;
     }
 
@@ -74,30 +70,32 @@ public class Ccustomer {
     }
 
         public void insertarCustomer(JTextField cedulaParam, JTextField nombreParam, JTextField direccionParam, JComboBox<String> GeneroParam, JComboBox<String> estadoParam) {
-        String cedulaText = cedulaParam.getText();
         
-        // Validar que el campo cédula no tenga más de 11 caracteres
-        if (cedulaText.length() > 11) {
-            JOptionPane.showMessageDialog(null, "La cédula no puede tener más de 11 caracteres.");
-            return;
-        }
+            String cedulaText = cedulaParam.getText();
+        
+            //System.out.println(cedulaText);
+        // Validar que el campo cédula tenga exactamente 11 caracteres
+        if (cedulaText.length() != 11) {
+            JOptionPane.showMessageDialog(null, "La cédula debe tener exactamente 11 caracteres.");
+            return;}
 
         // Validar que el campo cédula contenga solo números
         if (!cedulaText.matches("\\d+")) {
+
             JOptionPane.showMessageDialog(null, "La cédula debe contener solo números.");
             return;
         }
 
-        // Convertir cédula a número entero
+      // Convertir cédula a número largo (long)
         try {
-            int cedula = Integer.parseInt(cedulaText);
+            long cedula = Long.parseLong(cedulaText);
             setCedula(cedula);
         } catch (NumberFormatException e) {
-            System.out.println("Error: la cédula debe ser un número válido.");
+            JOptionPane.showMessageDialog(null, "Error: la cédula debe ser un número válido.");
             e.printStackTrace();
-            return;  // Salir del método si la cédula no es válida
+            return;
         }
-
+       
         setNombre(nombreParam.getText());
         setDireccion(direccionParam.getText());
         setGenero((String) GeneroParam.getSelectedItem());
@@ -110,7 +108,7 @@ public class Ccustomer {
             // Verificar si la cédula ya existe en la base de datos
             String consultaExistencia = "SELECT COUNT(*) FROM cliente WHERE cedula = ?";
             PreparedStatement psExistencia = conexion.prepareStatement(consultaExistencia);
-            psExistencia.setInt(1, getCedula());
+            psExistencia.setLong(1, getCedula());
             ResultSet rs = psExistencia.executeQuery();
             rs.next();
             if (rs.getInt(1) > 0) {
@@ -122,7 +120,7 @@ public class Ccustomer {
             String consulta = "INSERT INTO cliente (cedula, name, direccion, genero, estado) VALUES (?, ?, ?, ?, ?);";
             CallableStatement cs = conexion.prepareCall(consulta);
 
-            cs.setInt(1, getCedula());
+            cs.setLong(1, getCedula());
             cs.setString(2, getNombre());
             cs.setString(3, getDireccion());
             cs.setString(4, getGenero());

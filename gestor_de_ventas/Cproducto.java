@@ -4,27 +4,28 @@
  */
 package com.mycompany.gestor_de_ventas;
 
-import java.sql.CallableStatement;
-import java.sql.Statement;
-import javax.swing.JComboBox;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import java.io.FileWriter;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Statement;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 
 /**
  *
@@ -33,17 +34,17 @@ import java.io.IOException;
 public class Cproducto {
 
 
-    int cedula;
+    long cedula;
     String vendedor;
     String tipoCompra;
     String artículo;
     String precioT;
     
-        public int getCedula() {
+        public long getCedula() {
             return cedula;
         }
 
-        public void setCedula(int cedula) {
+        public void setCedula(long cedula) {
             this.cedula = cedula;
         }
 
@@ -144,146 +145,177 @@ public class Cproducto {
     
     
 
-    //Insertar cliente - Star -
+    //Insertar producto - Star -
 
-        public void insertarproducto(JTextField cedulaParam, JTextField vendedorParam, JComboBox<String> tipoCompraParam, JTextField artículoParam, JTextField precioTParam) {
-        String cedulaText = cedulaParam.getText();
-        
-        
-        // Validar que el campo cédula no tenga más de 11 caracteres
-        if (cedulaText.length() > 11) {
-            JOptionPane.showMessageDialog(null, "La cédula no puede tener más de 11 caracteres.");
-            return;
+         // Insertar producto - Star -
+public void insertarproducto(JTextField cedulaParam, JTextField vendedorParam, JComboBox<String> tipoCompraParam, JComboBox<String> artículoParam) {
+    String cedulaText = cedulaParam.getText();
+
+    // Validar que el campo cédula tenga exactamente 11 caracteres
+    if (cedulaText.length() != 11) {
+        JOptionPane.showMessageDialog(null, "La cédula debe tener exactamente 11 caracteres.");
+        return;
+    }
+
+    // Validar que el campo cédula contenga solo números
+    if (!cedulaText.matches("\\d+")) {
+        JOptionPane.showMessageDialog(null, "La cédula debe contener solo números.");
+        return;
+    }
+
+    // Convertir cédula a número largo (long)
+    try {
+        long cedula = Long.parseLong(cedulaText);
+        setCedula(cedula);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(null, "Error: la cédula debe ser un número válido.");
+        e.printStackTrace();
+        return;
+    }
+
+    setVendedor(vendedorParam.getText());
+    setTipoCompra((String) tipoCompraParam.getSelectedItem());
+    setArtículo((String) artículoParam.getSelectedItem());
+
+    // Asignar precio basado en el artículo seleccionado
+    String articuloSeleccionado = (String) artículoParam.getSelectedItem();
+    String precio;
+    switch (articuloSeleccionado) {
+        case "TV":
+            precio = "100"; // Precio para TV
+            break;
+        case "Laptop Gamer":
+            precio = "200"; // Precio para Laptop Gamer
+            break;
+        case "Mouse":
+            precio = "300"; // Precio para Mouse
+            break;
+        case "Teclado":
+            precio = "300"; // Precio para Teclado
+            break;
+        case "Celular":
+            precio = "300"; // Precio para Celular
+            break;
+        // Agregar más casos según sea necesario
+        default:
+            precio = "0"; // Precio por defecto si no coincide ningún artículo
+            break;
+    }
+
+    // Asignar el precio seleccionado
+    setPrecioT(precio);
+
+    Cconexion objetoConexion = new Cconexion();
+    Connection conexion = objetoConexion.estableceConexion();
+
+    try {
+        // Verificar si la cédula ya existe en la base de datos cliente
+        String consultaExistencia = "SELECT COUNT(*) FROM cliente WHERE cedula = ?";
+        PreparedStatement psExistencia = conexion.prepareStatement(consultaExistencia);
+        psExistencia.setLong(1, getCedula());
+        ResultSet rs = psExistencia.executeQuery();
+        rs.next();
+        if (rs.getInt(1) == 0) {
+            JOptionPane.showMessageDialog(null, "La cédula no existe en la base de datos.");
+            return; // Salir del método si la cédula no existe
         }
 
-        // Validar que el campo cédula contenga solo números
-        if (!cedulaText.matches("\\d+")) {
-            JOptionPane.showMessageDialog(null, "La cédula debe contener solo números.");
-            return;
-        }
-        
+        // Insertar el nuevo producto en la base de datos
+        String consultaInsertarProducto = "INSERT INTO producto (cedula, vendedor, tipo_compra, articulo, precio_total) VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement psInsertarProducto = conexion.prepareStatement(consultaInsertarProducto);
+        psInsertarProducto.setLong(1, getCedula());
+        psInsertarProducto.setString(2, getVendedor());
+        psInsertarProducto.setString(3, getTipoCompra());
+        psInsertarProducto.setString(4, articuloSeleccionado);
+        psInsertarProducto.setString(5, precio);
 
-        // Convertir cédula a número entero
+        psInsertarProducto.executeUpdate();
+        JOptionPane.showMessageDialog(null, "Se insertó correctamente el producto.");
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al insertar el producto: " + e.getMessage());
+    } finally {
         try {
-            int cedula = Integer.parseInt(cedulaText);
-            setCedula(cedula);
-        } catch (NumberFormatException e) {
-            System.out.println("Error: la cédula debe ser un número válido.");
-            e.printStackTrace();
-            return;  // Salir del método si la cédula no es válida
-        }
-
-        setVendedor(vendedorParam.getText());
-        
-        setTipoCompra((String) tipoCompraParam.getSelectedItem());
-        
-        setArtículo(artículoParam.getText());
-        
-        setPrecioT(precioTParam.getText());
-
-        Cconexion objetoConexion = new Cconexion();
-        Connection conexion = objetoConexion.estableceConexion();
-        
-
-            try {
-                // Verificar si la cédula ya existe en la base de datos
-                String consultaExistencia = "SELECT COUNT(*) FROM cliente WHERE cedula = ?";
-                PreparedStatement psExistencia = conexion.prepareStatement(consultaExistencia);
-                psExistencia.setInt(1, cedula);
-                ResultSet rs = psExistencia.executeQuery();
-                rs.next();
-                if (rs.getInt(1) == 0) {
-                    JOptionPane.showMessageDialog(null, "La cédula no existe.");
-                    return;  // Salir del método si la cédula no existe
-                }
-
-                // Insertar el nuevo producto en la base de datos
-                String consultaInsertarProducto = "INSERT INTO producto (cedula, vendedor, tipo_compra, articulo, precio_total) VALUES (?, ?, ?, ?, ?)";
-                PreparedStatement psInsertarProducto = conexion.prepareStatement(consultaInsertarProducto);
-                psInsertarProducto.setInt(1, cedula);
-                // Aquí debes setear los otros parámetros del producto
-                psInsertarProducto.executeUpdate();
-
-                JOptionPane.showMessageDialog(null, "Se insertó correctamente el producto.");
-
-                // Cerrar la conexión a la base de datos
+            if (conexion != null && !conexion.isClosed()) {
                 conexion.close();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
 
-            
-            
- 
+
+
+
+
+  
+
+        public void MostrarProductos(JTable tablaParam) {
+        Cconexion objetoConexion = new Cconexion();
+
+        DefaultTableModel modelo = new DefaultTableModel();
+        TableRowSorter<TableModel> OrdenarTabla = new TableRowSorter<TableModel>(modelo);
+        tablaParam.setRowSorter(OrdenarTabla);
+
+        modelo.addColumn("Fecha");
+        modelo.addColumn("Cedula");
+        modelo.addColumn("Vendedor");
+        modelo.addColumn("TipoCompra");
+        modelo.addColumn("Articulo");
+        modelo.addColumn("Precio");
+
+        tablaParam.setModel(modelo);
+
+        String sql = "SELECT * FROM producto;";
+        String[] datos = new String[6];
 
         try {
+            Statement st = objetoConexion.estableceConexion().createStatement();
+            ResultSet rs = st.executeQuery(sql);
 
-            // Insertar el nuevo cliente en la base de datos
-            String consulta = "INSERT INTO producto (cedula, vendedor, tipo_compra, articulo, precio_total) VALUES (?, ?, ?, ?, ?);";
-            CallableStatement cs = conexion.prepareCall(consulta);
+            while (rs.next()) {
+                datos[0] = rs.getString(2);
+                datos[1] = rs.getString(3);
+                datos[2] = rs.getString(4);
+                datos[3] = rs.getString(5);
+                datos[4] = rs.getString(6);
+                datos[5] = rs.getString(7);
 
-            cs.setInt(1, getCedula());
-            cs.setString(2, getVendedor());
-            cs.setString(3, getTipoCompra());
-            cs.setString(4, getArtículo());
-            cs.setString(5, getPrecioT());
-
-            cs.execute();
-
-
-        } catch (Exception e) {
-        }
-        }
-            //Insertar cliente - End -
-
-        // Mostrar la Tabla - Star -
-        public void MostrarProductos (JTable tablaParam){
-            
-            Cconexion objetoConexion = new Cconexion();
-
-            DefaultTableModel modelo = new DefaultTableModel();
-
-            TableRowSorter<TableModel> OrdenarTabla = new TableRowSorter<TableModel>(modelo);
-            tablaParam.setRowSorter(OrdenarTabla);
-
-            String sql = "";
-            modelo.addColumn("Fecha");
-            modelo.addColumn("Cedula");
-            modelo.addColumn("Vendedor");
-            modelo.addColumn("TipoCompra");
-            modelo.addColumn("Articulo");
-            modelo.addColumn("Precio");
-
+                modelo.addRow(datos);
+            }
 
             tablaParam.setModel(modelo);
 
-            sql = "SELECT * FROM producto;";
-            
-            String[] datos = new String[6];
-            
-            Statement st;
+        } catch (Exception e) {
+            JOptionPane.showConfirmDialog(null, "No se pueden mostrar los datos Error: " + e.toString());
+        }
+    }
 
-                try {
-                    st = objetoConexion.estableceConexion().createStatement();
-                    ResultSet rs = st.executeQuery(sql);
+    // Mostrar la Tabla - End -
+/*
+ public void configurarArticuloPrecio(JComboBox<String> artículoParam, JComboBox<String> precioTParam) {
+        // Crear un mapa con los artículos y sus precios
+        Map<String, String> precios = new HashMap<>();
+        precios.put("TV", "1000");
+        precios.put("Laptop Gamer", "1500");
+        precios.put("Mouse", "50");
+        precios.put("Teclado", "80");
+        precios.put("Celular", "700");
 
-                    while(rs.next()) {
-                        datos[0] = rs.getString(2);
-                        datos[1] = rs.getString(3);
-                        datos[2] = rs.getString(4);
-                        datos[3] = rs.getString(5);
-                        datos[4] = rs.getString(6);
-                        datos[5] = rs.getString(7);
+         artículoParam.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          String articuloSeleccionado = (String) artículoParam.getSelectedItem();
+          String precio = precios.get(articuloSeleccionado);
+          precioTParam.setSelectedItem(precio);
+        }
+      });
 
-                        modelo.addRow(datos);
-                    }
-                    
-                    tablaParam.setModel(modelo);
+    
+    }*/
 
-                } catch (Exception e) {
-                    JOptionPane.showConfirmDialog(null, "No se puede mostrar los datos Erro: "+e.toString());
-                }
+}
 
-        }}
-        // Mostrar la Tabla - End -
+
 
