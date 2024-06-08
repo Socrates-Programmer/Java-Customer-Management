@@ -22,17 +22,17 @@ import javax.swing.table.TableRowSorter;
  */
 public class Ccustomer {
     
-    long cedula;
+    String cedula;
     String nombre;
     String direccion;
     String Genero;
     String estado;
     
-    public long getCedula() {
+    public String getCedula() {
         return cedula;
     }
 
-    public void setCedula(Long cedula) {
+    public void setCedula(String cedula) {
         this.cedula = cedula;
     }
 
@@ -73,7 +73,7 @@ public class Ccustomer {
         
             String cedulaText = cedulaParam.getText();
         
-            //System.out.println(cedulaText);
+            System.out.println(cedulaText);
         // Validar que el campo cédula tenga exactamente 11 caracteres
         if (cedulaText.length() != 11) {
             JOptionPane.showMessageDialog(null, "La cédula debe tener exactamente 11 caracteres.");
@@ -87,14 +87,14 @@ public class Ccustomer {
         }
 
       // Convertir cédula a número largo (long)
-        try {
+       /* try {
             long cedula = Long.parseLong(cedulaText);
             setCedula(cedula);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Error: la cédula debe ser un número válido.");
             e.printStackTrace();
             return;
-        }
+        }*/
        
         setNombre(nombreParam.getText());
         setDireccion(direccionParam.getText());
@@ -104,35 +104,36 @@ public class Ccustomer {
         Cconexion objetoConexion = new Cconexion();
         Connection conexion = objetoConexion.estableceConexion();
 
-        try {
-            // Verificar si la cédula ya existe en la base de datos
-            String consultaExistencia = "SELECT COUNT(*) FROM cliente WHERE cedula = ?";
-            PreparedStatement psExistencia = conexion.prepareStatement(consultaExistencia);
-            psExistencia.setLong(1, getCedula());
-            ResultSet rs = psExistencia.executeQuery();
-            rs.next();
-            if (rs.getInt(1) > 0) {
-                JOptionPane.showMessageDialog(null, "La cédula ya existe.");
-                return;  // Salir del método si la cédula ya existe
-            }
+ try {
+    // Verificar si la cédula ya existe en la base de datos
+    String consultaExistencia = "SELECT COUNT(*) FROM cliente WHERE cedula = ?";
+    PreparedStatement psExistencia = conexion.prepareStatement(consultaExistencia);
+    psExistencia.setString(1, cedulaText);
+    ResultSet rs = psExistencia.executeQuery();
+    rs.next();
+    if (rs.getInt(1) > 0) {
+        JOptionPane.showMessageDialog(null, "La cédula ya existe.");
+        return;  // Salir del método si la cédula ya existe
+    }
 
-            // Insertar el nuevo cliente en la base de datos
-            String consulta = "INSERT INTO cliente (cedula, name, direccion, genero, estado) VALUES (?, ?, ?, ?, ?);";
-            CallableStatement cs = conexion.prepareCall(consulta);
+    // Insertar el nuevo cliente en la base de datos
+    String consulta = "INSERT INTO cliente (cedula, name, direccion, genero, estado) VALUES (?, ?, ?, ?, ?)";
+    PreparedStatement psInsertar = conexion.prepareStatement(consulta);
 
-            cs.setLong(1, getCedula());
-            cs.setString(2, getNombre());
-            cs.setString(3, getDireccion());
-            cs.setString(4, getGenero());
-            cs.setString(5, getEstado());
+    psInsertar.setString(1, cedulaText); // Establecer la cédula como String
+    psInsertar.setString(2, getNombre());
+    psInsertar.setString(3, getDireccion());
+    psInsertar.setString(4, getGenero());
+    psInsertar.setString(5, getEstado());
 
-            cs.execute();
+    psInsertar.executeUpdate();
 
-            //JOptionPane.showMessageDialog(null, "Se insertó correctamente el cliente");
+    JOptionPane.showMessageDialog(null, "Se insertó correctamente el cliente");
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "No se insertó correctamente el cliente, error: " + e.toString());
-        }
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(null, "No se insertó correctamente el cliente, error: " + e.toString());
+}
+
         }
             //Insertar cliente - End -
 

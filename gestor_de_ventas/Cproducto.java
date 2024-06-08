@@ -251,46 +251,50 @@ public void insertarproducto(JTextField cedulaParam, JTextField vendedorParam, J
 
   
 
-        public void MostrarProductos(JTable tablaParam) {
-        Cconexion objetoConexion = new Cconexion();
+       public void MostrarProductos(JTable tablaParam) {
+    Cconexion objetoConexion = new Cconexion();
 
-        DefaultTableModel modelo = new DefaultTableModel();
-        TableRowSorter<TableModel> OrdenarTabla = new TableRowSorter<TableModel>(modelo);
-        tablaParam.setRowSorter(OrdenarTabla);
+    DefaultTableModel modelo = new DefaultTableModel();
+    TableRowSorter<TableModel> OrdenarTabla = new TableRowSorter<TableModel>(modelo);
+    tablaParam.setRowSorter(OrdenarTabla);
 
-        modelo.addColumn("Fecha");
-        modelo.addColumn("Cedula");
-        modelo.addColumn("Vendedor");
-        modelo.addColumn("TipoCompra");
-        modelo.addColumn("Articulo");
-        modelo.addColumn("Precio");
+    modelo.addColumn("Fecha");
+    modelo.addColumn("Cedula");
+    modelo.addColumn("Vendedor");
+    modelo.addColumn("TipoCompra");
+    modelo.addColumn("Articulo");
+    modelo.addColumn("Precio");
+
+    tablaParam.setModel(modelo);
+
+    String sql = "SELECT * FROM producto;";
+    String[] datos = new String[6];
+
+    try {
+        Statement st = objetoConexion.estableceConexion().createStatement();
+        ResultSet rs = st.executeQuery(sql);
+
+        while (rs.next()) {
+            datos[0] = rs.getString(2);
+            // Aquí obtenemos la cédula como un long y luego la formateamos
+            long cedula = rs.getLong(3);
+            String cedulaFormateada = String.format("%011d", cedula);
+            datos[1] = cedulaFormateada;
+            datos[2] = rs.getString(4);
+            datos[3] = rs.getString(5);
+            datos[4] = rs.getString(6);
+            datos[5] = rs.getString(7);
+
+            modelo.addRow(datos);
+        }
 
         tablaParam.setModel(modelo);
 
-        String sql = "SELECT * FROM producto;";
-        String[] datos = new String[6];
-
-        try {
-            Statement st = objetoConexion.estableceConexion().createStatement();
-            ResultSet rs = st.executeQuery(sql);
-
-            while (rs.next()) {
-                datos[0] = rs.getString(2);
-                datos[1] = rs.getString(3);
-                datos[2] = rs.getString(4);
-                datos[3] = rs.getString(5);
-                datos[4] = rs.getString(6);
-                datos[5] = rs.getString(7);
-
-                modelo.addRow(datos);
-            }
-
-            tablaParam.setModel(modelo);
-
-        } catch (Exception e) {
-            JOptionPane.showConfirmDialog(null, "No se pueden mostrar los datos Error: " + e.toString());
-        }
+    } catch (Exception e) {
+        JOptionPane.showConfirmDialog(null, "No se pueden mostrar los datos Error: " + e.toString());
     }
+}
+
 
     // Mostrar la Tabla - End -
 /*
