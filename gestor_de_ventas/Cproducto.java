@@ -168,7 +168,7 @@ public class Cproducto {
     //Insertar producto - Star -
 
          // Insertar producto - Star -
-public void insertarproducto(JTextField cedulaParam, JTextField vendedorParam, JComboBox<String> tipoCompraParam, JComboBox<String> artículoParam) {
+public void insertarproducto(JTextField cedulaParam, JComboBox<String> vendedorParam, JComboBox<String> tipoCompraParam, JComboBox<String> artículoParam) {
     String cedulaText = cedulaParam.getText();
 
     // Validar que el campo cédula tenga exactamente 11 caracteres
@@ -193,7 +193,7 @@ public void insertarproducto(JTextField cedulaParam, JTextField vendedorParam, J
         return;
     }
 
-    setVendedor(vendedorParam.getText());
+    setVendedor((String) vendedorParam.getSelectedItem());
     setTipoCompra((String) tipoCompraParam.getSelectedItem());
     setArtículo((String) artículoParam.getSelectedItem());
 
